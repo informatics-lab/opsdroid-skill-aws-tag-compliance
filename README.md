@@ -1,29 +1,30 @@
-# opsdroid skill hello
+# opsdroid skill aws tag compliance
 
-A skill for [opsdroid](https://github.com/opsdroid/opsdroid) to respond to hello and goodbye messages.
+A skill for [opsdroid](https://github.com/opsdroid/opsdroid) to consistently ensure certain tags are applied to AWS resources.
 
 ## Requirements
 
-None.
+An AWS account with access keys which can update EC2 and S3 resource tags.
 
 ## Configuration
 
-None.
-
+```yaml
+  - name: aws-tag-compliance
+    aws_access_key_id: "MYACCESSKEY"
+    aws_secret_access_key: "MYSECRETKEY"
+    regions:
+      - "eu-west-1"
+    tags:
+      Tag1: 'value1'
+      Tag2: 'value2'
+```
 ## Usage
 
-#### `hello`
+#### `update AWS tags`
 
-Says hello to the user.
+Updates all tags specified in the configuration. This also runs hourly via crontab.
 
-> user: hello
+> user: update AWS tags
 >
-> opsdroid: Hi user
-
-#### `goodbye`
-
-Says goodbye to the user.
-
-> user: bye
->
-> opsdroid: Bye user
+> opsdroid: Updating the tags...
+> opsdroid: Tags updated.
