@@ -152,6 +152,41 @@ async def tag_elbs(aws_access_key_id, aws_secret_access_key, elbs, tags):
                 Tags = elb_tags
             )
 
+async def get_lambdas(aws_access_key_id, aws_secret_access_key, regions):
+    """Gets a list of all lambda functions on AWS for a list of regions."""
+    λs = []
+
+    session = aiobotocore.get_session()
+    for region in regions:
+        async with session.create_client("lambda",
+                                         aws_access_key_id=aws_access_key_id,
+                                         aws_secret_access_key=aws_secret_access_key,
+                                         region_name=region) as Λ:
+            region_λs = await Λ.list_functions()
+
+            for λ in region_λs["Functions"]:
+                λ["region"] = region
+                λs.append(λ)
+
+    return λs
+
+
+async def tag_lambdas(aws_access_key_id, aws_secret_access_key, λs, tags):
+    """Add a set of tags to a set of lambda functions."""
+    session = aiobotocore.get_session()
+    for λ in λs:
+        async with session.create_client("lambda",
+                                         aws_access_key_id=aws_access_key_id,
+                                         aws_secret_access_key=aws_secret_access_key,
+                                         region_name=λ["region"]) as Λ:
+
+            λ_tags = tags
+            λ_tags["Name"] = λ["FunctionName"]
+            await Λ.tag_resource(
+                Resource = λ["FunctionArn"],
+                Tags = λ_tags
+            )
+
 
 async def parse_tags(tags):
     """Return the tags in the AWS API format."""
@@ -215,3 +250,12 @@ async def update_tags(opsdroid, config, message):
     _LOGGER.info("ELB tags updated.")
     if hasattr(message, 'regex'):
         await message.respond("Updated ELB tags.")
+
+    _LOGGER.info("Updating lambda function tags...")
+    if hasattr(message, 'regex'):
+        await message.respond("Updating lambda function tags...")
+    lambdas = await get_lambdas(aws_access_key_id, aws_secret_access_key, regions)
+    await tag_lambdas(aws_access_key_id, aws_secret_access_key, lambdas, config['tags'])
+    _LOGGER.info("Lambda function tags updated.")
+    if hasattr(message, 'regex'):
+        await message.respond("Updated lambda function tags.")
