@@ -259,3 +259,4 @@ async def update_tags(opsdroid, config, message):
     _LOGGER.info("Lambda function tags updated.")
     if hasattr(message, 'regex'):
         await message.respond("Updated lambda function tags.")
+        await message.respond("Finished updating tags.")
